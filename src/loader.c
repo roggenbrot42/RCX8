@@ -56,14 +56,14 @@ PRCX8 bootstrap(const char * name){
 
 void setup(PRCX8 state){
 	if(state != NULL){
-	memset(state->reg,0,_REGISTERCOUNT_*sizeof(UBYTE));
-    memset(state->memory,0,_MEMSIZE_ * sizeof(UBYTE));
-	memset(state->stack,0,_CALLSTACKSIZE_*sizeof(ADDR));
-	state->spointer = 0;
-	state->acc = 0;
-	state->pc = 0;
-	state->carry = 0;
-	state->run = 1;
+        memset(state->reg,0,_REGISTERCOUNT_*sizeof(UBYTE));
+        memset(state->memory,0,_MEMSIZE_ * sizeof(UBYTE));
+        memset(state->stack,0,_CALLSTACKSIZE_*sizeof(ADDR));
+        state->spointer = 0;
+        state->acc = 0;
+        state->pc = 0;
+        state->carry = 0;
+        state->run = 1;
 	}
 }
 
