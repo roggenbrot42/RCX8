@@ -1,0 +1,923 @@
+<html>
+<head>
+<title>RCx8 Instruction Set</title>
+<body>
+<center><h2>RCx8 Instruction Set</h2></center>
+<hr noshade size="1" color="#808080" width="600">
+<p>The RCx8 processor is an 8-bit processor with 8 8-bit registers R0-R7 as well as the Accumulator ACC. The processor can address up to 65536 bytes of memory. The program counter PC is a 16-bit register. All addresses appear as 2 bytes, LSB followed by MSB. The processor is intended for use as a microcontroller for simple plant monitoring and processing. It can interface directly to an output terminal and keyboard for real time messaging and decision making by operators. Programs can be bootstrapped directly from a network uplink to the 64k RAM by holding the test pin high, and holding load pin high for memory upload and dropping low for PC upload. Releasing the test pin restarts execution. Systems control and monitoring is via port addressing to up to 256 ports which would generally consist of transducers. The RCx8 chip has an on board 256 byte RAM which is used to maintain an internal call stack.
+<p>
+<table border="1" width="100%">
+<tbody>
+  <tr>
+    <th align="left" noWrap rowSpan="2"><font size="2">Operation</font></th>
+    <th noWrap rowSpan="2"><font size="2">Mnemonic</font></th>
+    <th colSpan="4" noWrap align="center"><font size="2">OPR</font></th>
+    <th colSpan="4" noWrap align="center"><font size="2">OPA</font></th>
+    <th align="left" noWrap rowSpan="2"><font size="2">Description</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Carry</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Bytes</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Cycles</font></th>
+  </tr>
+  <tr>
+    <th noWrap align="center"><font size="2">D3</font></th>
+    <th noWrap align="center"><font size="2">D2</font></th>
+    <th noWrap align="center"><font size="2">D1</font></th>
+    <th noWrap align="center"><font size="2">D0</font></th>
+    <th noWrap align="center"><font size="2">D3</font></th>
+    <th noWrap align="center"><font size="2">D2</font></th>
+    <th noWrap align="center"><font size="2">D1</font></th>
+    <th noWrap align="center"><font size="2">D0</font></th>
+  </tr>
+  <tr>
+    <td><font size="2">No operation</font></td>
+    <td align="middle" noWrap><font size="2">NOP</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td><font size="2">PC « PC + 1</font></td>
+    <td align="center" noWrap><font size="2">-</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">No operation.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Jump conditionally</font></td>
+    <td align="middle"><font size="2">JCN</font></td>
+    <td align="center"><font size="2">0<sub> </sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<sub> </sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<sub> </sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<sub> </sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">C<sub>1</sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">C<sub>2</sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">C<sub>3</sub><br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">C<sub>4</sub><br>
+    A<br>
+    A</font></td>
+    <td><font size="2">If C<sub>x</sub>, PC « Address</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">3</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">If the condition exists, load program
+    counter with address. Conditions are:<br>
+    C<sub>1</sub> = Invert condition of C<sub>2</sub>, C<sub>3</sub>, and C<sub>4</sub><br>
+    C<sub>2</sub> = Accumulator is zero<br>
+    C<sub>3</sub> = carry/link is true<br>
+    C<sub>4</sub> = Test signal is true</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Fetch immediate</font></td>
+    <td align="middle"><font size="2">FIM</font></td>
+    <td align="center"><font size="2">0<br>
+    D</font></td>
+    <td align="center"><font size="2">0<br>
+    D</font></td>
+    <td align="center"><font size="2">1<br>
+    D</font></td>
+    <td align="center"><font size="2">0<br>
+    D</font></td>
+    <td align="center"><font size="2">R<br>
+    D</font></td>
+    <td align="center"><font size="2">R<br>
+    D</font></td>
+    <td align="center"><font size="2">R<br>
+    D</font></td>
+    <td align="center"><font size="2">0<br>
+    D</font></td>
+    <td><font size="2">Register R « D</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">2</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load the register RRR with D.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Zero register</font></td>
+    <td align="middle"><font size="2">ZER</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">Register R « 0</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Zero contents of register RRR.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Fetch indirect</font></td>
+    <td align="middle"><font size="2">FIN</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">Register R « [R1.R0]</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load register RRR with the contents of RAM at address pointed to by R1.R0 where R1=MSB of address.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Fetch direct</font></td>
+    <td align="middle"><font size="2">FTC</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td><font size="2">Register R « [A]</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">3</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load register RRR with the contents of RAM at address A.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Jump unconditionally</font></td>
+    <td align="middle"><font size="2">JUN</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td><font size="2">PC « Address</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">3</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Unconditional jump to address A. The program counter is loaded with A.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Jump to subroutine</font></td>
+    <td align="middle"><font size="2">JMS</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td><font size="2">Stack « PC, PC « A</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">3</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Store program counter on stack, moving subsequent values
+    down the stack. Load the program counter with address.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Increment</font></td>
+    <td align="middle"><font size="2">INC</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">R « R + 1</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Increment register RRR and set carry if overflow.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Increment on overflow</font></td>
+    <td align="middle"><font size="2">INO</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">R « R + C</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Increment register RRR if carry is set and set carry if overflow.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Increment register, skip jump if zero</font></td>
+    <td align="middle"><font size="2">ISZ</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td><font size="2">R « R + 1, if R &lt;&gt; 0 then PC « Address</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">3</font></td>
+    <td align="center"><font size="2">2</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Increment register RRR and if Register R is not zero then jump to address A.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Store Reg</font></td>
+    <td align="middle"><font size="2">STO</font></td>
+    <td align="center"><font size="2">0<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">R<br>
+    A<br>
+    A</font></td>
+    <td align="center"><font size="2">1<br>
+    A<br>
+    A</font></td>
+    <td><font size="2">[A] « R </font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">3</font></td>
+    <td align="center"><font size="2">3</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Store register RRR at RAM address A.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Add</font></td>
+    <td align="middle"><font size="2">ADD</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">R « A + R + C</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Add accumulator plus register RRR plus carry flag. If
+    overflow, set carry flag.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Xor</font></td>
+    <td align="middle"><font size="2">XOR</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">R « A xor R </font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Xor register RRR with accumulator. </font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Subtract</font></td>
+    <td align="middle"><font size="2">SUB</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">R « A - R - C</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Subtract from accumulator, register RRR and carry. If borrow,
+    set carry.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Store Indirect</font></td>
+    <td align="middle"><font size="2">STI</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">[R1.R0] « R</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Store register RRR at RAM address R1.R0 where R1=MSB of address. </font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Load </font></td>
+    <td align="middle"><font size="2">LD</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">A « R</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load accumulator with contents of register R.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Exchange</font></td>
+    <td align="middle"><font size="2">XCH</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">R</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">R « A, A « R</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Exchange the contents of accumulator with register R.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Branch back one level</font></td>
+    <td align="middle"><font size="2">BBL</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td><font size="2">PC « Stack, A « DDDD</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load program counter with address on top of stack, move
+    subsequent values up the stack. Returns 0000DDDD in accumulator.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Load immediate</font></td>
+    <td align="middle"><font size="2">LDM</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td align="center"><font size="2">D</font></td>
+    <td><font size="2">A « D</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load accumulator with immediate data D.</font></td>
+  </tr>
+</tbody>
+</table>
+
+<h4>Input/Output and RAM Instructions</h4>
+
+<table border="1" width="100%">
+<tbody>
+  <tr>
+    <th align="left" noWrap rowSpan="2"><font size="2">Operation</font></th>
+    <th noWrap rowSpan="2"><font size="2">Mnemonic</font></th>
+    <th colSpan="4" noWrap align="center"><font size="2">OPR</font></th>
+    <th colSpan="4" noWrap align="center"><font size="2">OPA</font></th>
+    <th align="left" noWrap rowSpan="2"><font size="2">Description</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Carry</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Bytes</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Cycles</font></th>
+  </tr>
+  <tr>
+    <th noWrap align="center"><font size="2">D3</font></th>
+    <th noWrap align="center"><font size="2">D2</font></th>
+    <th noWrap align="center"><font size="2">D1</font></th>
+    <th noWrap align="center"><font size="2">D0</font></th>
+    <th noWrap align="center"><font size="2">D3</font></th>
+    <th noWrap align="center"><font size="2">D2</font></th>
+    <th noWrap align="center"><font size="2">D1</font></th>
+    <th noWrap align="center"><font size="2">D0</font></th>
+  </tr>
+  <tr>
+    <td><font size="2">Write Port</font></td>
+    <td align="middle"><font size="2">WMP</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td><font size="2">Port P « A</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">2</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Write accumulator to I/O port P.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Read Port</font></td>
+    <td align="middle"><font size="2">RDR</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td align="center"><font size="2">1<br>P</font></td>
+    <td align="center"><font size="2">0<br>P</font></td>
+    <td><font size="2">A « Port P</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">2</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Read the IO port P and place the result in the accumulator.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Keyboard input</font></td>
+    <td align="middle"><font size="2">KBI</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">A « KEYBD</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Load accumulator with ascii value from keyboard</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Output accumulator as ascii</font></td>
+    <td align="middle"><font size="2">ASC</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">VDU « A</font></td>
+    <td align="center"><font size="2">-</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Output accumulator as ascii</font></td>
+  </tr>
+</tbody>
+</table>
+
+<h4>Accumulator Group Instructions</h4>
+
+<table border="1" width="100%">
+<tbody>
+  <tr>
+    <th align="left" noWrap rowSpan="2"><font size="2">Operation</font></th>
+    <th noWrap rowSpan="2"><font size="2">Mnemonic</font></th>
+    <th colSpan="4" noWrap align="center"><font size="2">OPR</font></th>
+    <th colSpan="4" noWrap align="center"><font size="2">OPA</font></th>
+    <th align="left" noWrap rowSpan="2"><font size="2">Description</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Carry</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Bytes</font></th>
+    <th noWrap rowSpan="2" align="center"><font size="2">Cycles</font></th>
+  </tr>
+  <tr>
+    <th noWrap align="center"><font size="2">D3</font></th>
+    <th noWrap align="center"><font size="2">D2</font></th>
+    <th noWrap align="center"><font size="2">D1</font></th>
+    <th noWrap align="center"><font size="2">D0</font></th>
+    <th noWrap align="center"><font size="2">D3</font></th>
+    <th noWrap align="center"><font size="2">D2</font></th>
+    <th noWrap align="center"><font size="2">D1</font></th>
+    <th noWrap align="center"><font size="2">D0</font></th>
+  </tr>
+  <tr>
+    <td><font size="2">Clear both</font></td>
+    <td align="middle" noWrap><font size="2">CLB</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td><font size="2">A « 0; C « 0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Clear accumlator and carry</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Clear carry</font></td>
+    <td align="middle"><font size="2">CLC</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">C « 0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Clear carry</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Increment accumulator</font></td>
+    <td align="middle"><font size="2">IAC</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td><font size="2">A « A + 1</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Increment accumulator. If overflow, set carry.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Complement carry</font></td>
+    <td align="middle"><font size="2">CMC</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">C « #C</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Invert carry.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Complement accumulator</font></td>
+    <td align="middle" noWrap><font size="2">CMA</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td><font size="2">A « #A</font></td>
+    <td align="center" noWrap><font size="2">-</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Invert the contents of the accumulator. This is a bitwise complement. ~0xFF=0x00.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Roll accumulator left</font></td>
+    <td align="middle"><font size="2">RAL</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td>&nbsp;</td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Roll bits in accumulator left through carry and carry to
+    LSB of accumulator.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Roll accumulator right</font></td>
+    <td align="middle"><font size="2">RAR</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td>&nbsp;</td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Roll bits in accumulator right through carry and carry to
+    MSB of accumulator.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Transmit carry and clear</font></td>
+    <td align="middle"><font size="2">TCC</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td><font size="2">A « 000C; C « 0</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Transmit carry to accumulator and clear carry.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Decrement accumulator</font></td>
+    <td align="middle" noWrap><font size="2">DAC</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td><font size="2">A « A - 1</font></td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Decrement accumulator. If borrow, set carry.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Set carry</font></td>
+    <td align="middle" noWrap><font size="2">STC</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">0</font></td>
+    <td><font size="2">C « 1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+    <td align="center" noWrap><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Set carry.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Decimal adjust accumulator</font></td>
+    <td align="middle"><font size="2">DAA</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">0</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td>&nbsp;</td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Decimal adjust accumulator after addition.</font></td>
+  </tr>
+  <tr>
+    <td><font size="2">Halt</font></td>
+    <td align="middle"><font size="2">HLT</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td>&nbsp;</td>
+    <td align="center"><font size="2">±</font></td>
+    <td align="center"><font size="2">1</font></td>
+    <td align="center"><font size="2">1</font></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td colSpan="13"><font size="2">Halts processor until test pin is used to reset it.</font></td>
+  </tr>
+</tbody>
+</table>
+</body>
+</html>

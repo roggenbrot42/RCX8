@@ -7,7 +7,7 @@
 PRCX8 bootstrap(const char * name){
 	FILE * pIn = fopen(name, "rb");
 	if(pIn != NULL){
-		printf("senf\n");
+		printf("Loader started\n");
 		WORD buf;
 		PRCX8 retVal = (PRCX8) malloc(sizeof(RCX8));
 		setup(retVal);
@@ -22,9 +22,9 @@ PRCX8 bootstrap(const char * name){
 					mode=1;
 					break;
 				case 0x1000:
-					printf("found comment block\n");
-					char c;
-					fread(&buf,sizeof(buf),1,pIn);
+                    fread(&buf,sizeof(buf),1,pIn);
+                    char c;
+                    printf("Found comment block at %x of length: %d\n", ftell(pIn),buf);
 					for(int i = 0; i < buf; i++){
 						fread(&c, sizeof(c),1,pIn);
 						printf("%c", c);
@@ -37,12 +37,12 @@ PRCX8 bootstrap(const char * name){
 					ADDR offset = buf;
 					fread(&buf,sizeof(buf),1,pIn); //Length of data
 					WORD length = buf;
-					printf("found data block %x len: %d\n",offset,length);
+					printf("Found data block %x at %x len: %d\n",offset,ftell(pIn),length);
 					fread(retVal->memory + offset, sizeof(BYTE),length, pIn);
 					break;
 				case 0x7000:
 					fread(&buf,sizeof(buf),1,pIn);
-					printf("PC Address: %x\n", buf);
+					printf("Found PC Address: %x at %x\n", buf, ftell(pIn));
 					retVal->pc = buf;
 					break;
 				}
@@ -71,7 +71,7 @@ void dumpstate(PRCX8 state){
 	FILE * fout;
 	fout = fopen("dump.out","wb");
 	if(fout != NULL){
-		fprintf(fout,"PC:%p\nACC:%p\n\nMEMORY:\n",&state->pc,&state->acc);
+		printf("PC:%d\nACC:%d\n",state->pc,state->acc);
 		fwrite(state->memory,sizeof(UBYTE),_MEMSIZE_, fout);
 		fclose(fout);
 	}

@@ -13,60 +13,77 @@
 #define __MAX(type) ((type)~__MIN(type))
 
 #define assign(dest,src) ({ \
-  __typeof__(src) __x=(src); \
-  __typeof__(dest) __y=__x; \
-  (__x==__y && ((__x<1) == (__y<1))?(void)((dest)=__y),0:1); \
-})
+        __typeof__(src) __x=(src); \
+        __typeof__(dest) __y=__x; \
+        (__x==__y && ((__x<1) == (__y<1))?(void)((dest)=__y),0:1); \
+        })
 #define add_of(c,a,b) ({ \
-  __typeof__(a) __a=a; \
-  __typeof__(b) __b=b; \
-  (__b)<1 ? \
-    ((__MIN(__typeof__(c))-(__b)<=(__a))?assign(c,__a+__b):1) : \
-    ((__MAX(__typeof__(c))-(__b)>=(__a))?assign(c,__a+__b):1); \
-})
+        __typeof__(a) __a=a; \
+        __typeof__(b) __b=b; \
+        (__b)<1 ? \
+        ((__MIN(__typeof__(c))-(__b)<=(__a))?assign(c,__a+__b):1) : \
+        ((__MAX(__typeof__(c))-(__b)>=(__a))?assign(c,__a+__b):1); \
+        })
 #define sub_of(c,a,b) ({ \
-  __typeof__(a) __a=a; \
-  __typeof__(b) __b=b; \
-  (__b)<1 ? \
-    ((__MAX(__typeof__(c))+(__b)>=(__a))?assign(c,__a-__b):1) : \
-    ((__MIN(__typeof__(c))+(__b)<=(__a))?assign(c,__a-__b):1); \
-})
+        __typeof__(a) __a=a; \
+        __typeof__(b) __b=b; \
+        (__b)<1 ? \
+        ((__MAX(__typeof__(c))+(__b)>=(__a))?assign(c,__a-__b):1) : \
+        ((__MIN(__typeof__(c))+(__b)<=(__a))?assign(c,__a-__b):1); \
+        })
 
+#define dbgprintf(...) if(verbose){fprintf(__VA_ARGS__);} 
+
+int verbose = 0;
+FILE * logfile=0;
 
 int main(int argc, char * argv[])
 {
     mapopc();
     
-    if(argc > 1){
-	    proc=bootstrap(argv[1]);
-	}
-	else{
-		printf("Insufficient arguments\n");
-		return 1;
-	}
+    if(argc < 2){
+        printf("Insufficient arguments\n");
+        return -1;
+    }
+    if(argc == 2){
+        proc=bootstrap(argv[1]);
+    }
+    if(argc == 3){
+        if(*argv[1] == 'v'){ verbose = true;}
+        else{ printf("Unkown parameter\n"); }
+        proc=bootstrap(argv[2]);
+    }
 
-    dumpstate(proc);
+    //dumpstate(proc);
 
-	printf("und go.\n");
+    if(verbose){
+        logfile = fopen("out.log","w");
+        if(logfile==0){
+            verbose = 0;
+            fprintf(stderr,"Error opening log file...\n");
+        }
+    }
+
+    printf("und go.\n");
 
     /*memory[0]   = 0b00100010; //FIM R1 8
-    memory[1]   = 0b00001000; // => R1.R0 = 2048
-    memory[3]   = 0b00110100; //fin R2
-    memory[4]   = 0b10100100; //ld acc r2
-    memory[5]   = 0b00000000; //nop
-    memory[6]   = 0b00011100; //jump nif acc=0
-    memory[7]   = 0b00000000;
-    memory[8]   = 0b00001100; //to 10
-    memory[9]   = 0b01000000; //jun
-    memory[10]  = 0; // to
-    memory[11]  = 19; // 19
-    memory[12]  = 0b10100100; // ld R2
-    memory[13]  = 0b11111101; // asc
-    memory[14]  = 0b01100000; // inc R0
-    memory[15]  = 0b01100011; //ino R1
-    memory[16]  = 0b01000000; //jun
-    memory[17]  = 0;
-    memory[18]  = 3; //to 3
+      memory[1]   = 0b00001000; // => R1.R0 = 2048
+      memory[3]   = 0b00110100; //fin R2
+      memory[4]   = 0b10100100; //ld acc r2
+      memory[5]   = 0b00000000; //nop
+      memory[6]   = 0b00011100; //jump nif acc=0
+      memory[7]   = 0b00000000;
+      memory[8]   = 0b00001100; //to 10
+      memory[9]   = 0b01000000; //jun
+      memory[10]  = 0; // to
+      memory[11]  = 19; // 19
+      memory[12]  = 0b10100100; // ld R2
+      memory[13]  = 0b11111101; // asc
+      memory[14]  = 0b01100000; // inc R0
+      memory[15]  = 0b01100011; //ino R1
+      memory[16]  = 0b01000000; //jun
+      memory[17]  = 0;
+      memory[18]  = 3; //to 3
     //memory[19]  = 0b11111100; //kbi
     memory[19]  = 255;
 
@@ -109,10 +126,10 @@ int main(int argc, char * argv[])
     */
 
 
-while(proc->run)
-{
-    readOp();
-}
+    while(proc && proc->run)
+    {
+        readOp();
+    }
 
 
     return 0;
@@ -135,7 +152,7 @@ void mapopc() {
     oprmap[13] = &ldm;
     oprmap[14] = &wmprdr;
     oprmap[15] = &opa;
-    
+
     opamap[0] = &clb;
     opamap[1] = &clc;
     opamap[2] = &iac;
@@ -169,12 +186,12 @@ void readOp()
 {
     UBYTE op;
     op = proc->memory[proc->pc];
-    
+
     if(op == 0xFD)
-    	printf("found asc\n");
-    
- //   printf("%#x %#x\n",op, proc->pc);
-    
+        dbgprintf(logfile,"found asc\n");
+
+    //   printf("%#x %#x\n",op, proc->pc);
+
     oprmap[(op>>4)](op);
 }
 
@@ -183,13 +200,12 @@ inline REGNO getRegno(BYTE in)
     return (REGNO) (in >> 1) & 7;
 }
 
-inline ADDR fetchADDR(ADDR in) //TODO: bug?
+inline ADDR fetchADDR(ADDR in)
 {
-	
+
     ADDR addr=0;
     addr = (proc->memory[in+1] << 8) | proc->memory[in];
-//    addr = (ADDR*)(proc->memory + in);
-    
+
     return addr;
 }
 
@@ -241,9 +257,9 @@ void opa(UBYTE in){
 
 void nop(UBYTE op)
 {
-	proc->pc++;
-	//proc->run = 0;
-	fprintf(stderr, "nop pc: %x\n",proc->pc);
+    proc->pc++;
+    //proc->run = 0;
+    dbgprintf(logfile, "nop pc: %x\n",proc->pc);
 
 }
 
@@ -254,11 +270,12 @@ void jcn(UBYTE op)
     proceed = false;
     bool invert = true;
 
-	fprintf(stderr, "jcn\n");
+    dbgprintf(logfile, "jcn\n");
 
-    if(op&0b1000) //invert bit set?
+    if(op&0b1000){ //invert bit set?
         invert = false;
-    if(op&4) //check for acc = 0
+    }
+    if(op&0b100) //check for acc = 0
     {
         if((proc->acc == 0) == invert)
             proceed = true;
@@ -272,15 +289,14 @@ void jcn(UBYTE op)
     }
     if(op&0b1)
     {
+        dbgprintf(logfile, "Check test signal... Not Implemented. Aborting.\n");
         //check for test signal
     }
 
     if(proceed)
     {
         proc->pc = fetchADDR(proc->pc+1);
-    }
-    if(!proceed)
-    {
+    }else{
         proc->pc += 3;
     }
 }
@@ -290,9 +306,9 @@ void fin(REGNO regno)
     ADDR addr;
     addr = (proc->reg[1] << 8) | proc->reg[0];
     regno = getRegno(regno);
-   	fprintf(stderr,"%#x fin R%d addr: %#x\n",proc->pc,regno,addr);
 
     proc->reg[regno] = proc->memory[addr];
+    dbgprintf(logfile,"%#x fin R%d addr: %#x,%c\n",proc->pc,regno,addr,proc->memory[addr]);
 
     proc->pc++;
 }
@@ -301,31 +317,31 @@ void fim(REGNO regno)
 {
     regno = getRegno(regno);
     proc->reg[regno]=proc->memory[proc->pc+1];
-    fprintf(stderr, "%#x fim R%d %d\n",proc->pc,regno, proc->reg[regno]);
+    dbgprintf(logfile, "%#x fim R%d %d\n",proc->pc,regno, proc->reg[regno]);
     proc->pc +=2;
 }
 
 void zer(REGNO regno)
 {
     regno = getRegno(regno);
-	proc->reg[regno]=0;
-	fprintf(stderr, "%#x zer R%d\n",proc->pc,regno);
-	proc->pc++;
+    proc->reg[regno]=0;
+    dbgprintf(logfile, "%#x zer R%d\n",proc->pc,regno);
+    proc->pc++;
 }
 
 void ftc(REGNO regno)
 {
     regno = getRegno(regno);
-	ADDR addr=fetchADDR(proc->pc+1);
-	proc->reg[regno]=proc->memory[addr];
-	//printf("addr:%u,memory:%u,pc:%u\n",addr,memory[addr],pc);
-	fprintf(stderr, "ftc R%d\n",regno);
-	proc->pc += 3;
+    ADDR addr=fetchADDR(proc->pc+1);
+    proc->reg[regno]=proc->memory[addr];
+    //printf("addr:%u,memory:%u,pc:%u\n",addr,memory[addr],pc);
+    dbgprintf(logfile, "ftc R%d\n",regno);
+    proc->pc += 3;
 }
 
 void jun(UBYTE op)
 {
-    fprintf(stderr, "%#x jun %#x\n", proc->pc,fetchADDR(proc->pc+1));
+    dbgprintf(logfile, "%#x jun %#x\n", proc->pc,fetchADDR(proc->pc+1));
     proc->pc = fetchADDR(proc->pc+1);
     dumpstate(proc);
 }
@@ -336,7 +352,7 @@ void jms(UBYTE op)
     if(proc->spointer>15)
         proc->spointer = 0;
     proc->stack[proc->spointer] = proc->pc+3; //pc+3 ?
-	fprintf(stderr, "jms\n");
+    dbgprintf(logfile, "jms\n");
     proc->pc = fetchADDR(proc->pc+1);
 }
 
@@ -345,28 +361,33 @@ void inc(REGNO regno)
     UBYTE buffer;
     regno = getRegno(regno);
     buffer = proc->reg[regno];
-	proc->reg[regno]++;
-	//check for overflow
-	if(proc->reg[regno]<buffer)
+    proc->reg[regno]++;
+    //check for overflow
+    if(proc->reg[regno]<buffer)
         proc->carry = true;
-        
-    fprintf(stderr, "%#x inc R%d\n", proc->pc, regno);
-	proc->pc++;
+    else
+        proc->carry = false;
+
+    dbgprintf(logfile, "%#x inc R%d=%d C:%d\n", proc->pc, regno,proc->reg[regno],proc->carry);
+    proc->pc++;
 }
 
 void ino(REGNO regno)
 {
     regno = getRegno(regno);
-	fprintf(stderr, "%#x ino R%d\n", proc->pc, regno);
+    dbgprintf(logfile, "%#x ino R%d=%d C:%d\n", proc->pc, regno,proc->reg[regno],proc->carry);
     if(proc->carry == true)
     {
         UBYTE buffer;
-    	regno = getRegno(regno);
-    	buffer = proc->reg[regno];
-		proc->reg[regno]++;
-		//check for overflow
-		if(proc->reg[regno]<buffer)
-        	proc->carry = true;
+        regno = getRegno(regno);
+        buffer = proc->reg[regno];
+        proc->reg[regno]++;
+        //check for overflow
+        if(proc->reg[regno]<buffer){
+            proc->carry = true;
+        }else{
+            proc->carry = false;
+        }
     }
     proc->pc++;
 }
@@ -375,20 +396,20 @@ void isz(REGNO regno)
 {
     regno = getRegno(regno);
     proc->reg[regno]++;
-    fprintf(stderr, "%#x isz R%d %#.4x\n",proc->pc, regno, fetchADDR(proc->pc+1));
+    dbgprintf(logfile, "%#x isz R%d=%d %#.4x\n",proc->pc, regno,proc->reg[regno], fetchADDR(proc->pc+1));
     if(proc->reg[regno] != 0){
         proc->pc = fetchADDR(proc->pc+1);
     }
     else proc->pc += 3;
-    
+
 }
-    
+
 
 void sto(REGNO regno)
 {
     regno = getRegno(regno);
     ADDR a = fetchADDR(proc->pc+1);
-    fprintf(stderr, "%#x sto R%d ADDR %#x\n",proc->pc,regno,a);
+    dbgprintf(logfile, "%#x sto R%d ADDR %#x\n",proc->pc,regno,a);
     proc->memory[a] = proc->reg[regno];
     proc->pc += 3;
 }
@@ -396,26 +417,31 @@ void sto(REGNO regno)
 void add(REGNO regno)
 {
     regno = getRegno(regno);
-	UBYTE tmp,tmp2;
-	fprintf(stderr, "%#x add R%d\n", proc->pc, regno);
-	#if __GNUC__ > 4
+    UBYTE tmp,tmp2;
+    dbgprintf(logfile, "%#x add R%d\n", proc->pc, regno);
+    dbgprintf(logfile, "C:%d R%d + A%d = ",proc->carry, proc->reg[regno], proc->acc);
+#if __GNUC__ > 4
     //R = A + R + C
-    if(__builtin_add_overflow(proc->acc, proc->reg[regno],&tmp))
-    	proc->carry = true;
-    if(__builtin_sub_overflow(tmp, proc->carry, &tmp2)
-    	proc->carry |= true;
+    if(__builtin_add_overflow(proc->acc, proc->reg[regno],&tmp)){
+        proc->carry = true;
+    }else{
+        proc->carry = false;
+    }
+    if(__builtin_sub_overflow(tmp, proc->carry, &tmp2))
+        proc->carry |= true;
 
-	proc->reg[regno] = tmp2;
-	#else
-		add_of(proc->carry, proc->acc, proc->reg[regno]);
-	#endif
-	proc->pc++;
+    proc->reg[regno] = tmp2;
+#else
+    add_of(proc->carry, proc->acc, proc->reg[regno]);
+#endif
+    dbgprintf(logfile, "%d\n", proc->reg[regno]);
+    proc->pc++;
 }
 
 void xor(REGNO regno)
 {
     regno = getRegno(regno);
-	fprintf(stderr, "xor R%d\n",regno);
+    dbgprintf(logfile, "xor R%d\n",regno);
     proc->reg[regno] = proc->reg[regno]^(proc->acc);
     proc->pc++;
 }
@@ -424,17 +450,17 @@ void sub(REGNO regno)
 {
     regno = getRegno(regno);
     UBYTE tmp,tmp2;
-    fprintf(stderr, "sub R%d\n", regno);
-	#if __GNUC__ > 4
+    dbgprintf(logfile, "sub R%d\n", regno);
+#if __GNUC__ > 4
     //R = A - R - C
     if(__builtin_sub_overflow(proc->acc, proc->reg[regno],&tmp))
-    	proc->carry = true;
-    if(__builtin_sub_overflow(tmp, proc->carry, &tmp2)
-    	proc->carry |= true;
+        proc->carry = true;
+    if(__builtin_sub_overflow(tmp, proc->carry, &tmp2))
+        proc->carry |= true;
 
-	proc->reg[regno] = tmp2;    
-	#endif
-	proc->pc++;
+    proc->reg[regno] = tmp2;    
+#endif
+    proc->pc++;
 }
 
 void sti(REGNO regno)
@@ -443,7 +469,7 @@ void sti(REGNO regno)
 
     ADDR addr;
     addr = (proc->reg[1] <<8) | proc->reg[0];
-	fprintf(stderr, "sti R%d %#x\n",regno,addr);
+    dbgprintf(logfile, "sti R%d %#x\n",regno,addr);
     proc->memory[addr] = proc->reg[regno];
 
     proc->pc++;
@@ -452,14 +478,14 @@ void sti(REGNO regno)
 void ld(REGNO regno)
 {
     regno = getRegno(regno);
-	proc->acc = proc->reg[regno];
-	fprintf(stderr, "%#x ld R%d\n", proc->pc, regno);
-	proc->pc++;
+    proc->acc = proc->reg[regno];
+    dbgprintf(logfile, "%#x ld R%d\n", proc->pc, regno);
+    proc->pc++;
 }
 
 void xch(REGNO regno)
 {
-	fprintf(stderr, "xch R\n");
+    dbgprintf(logfile, "xch R\n");
     regno = getRegno(regno);
     UBYTE swap;
     swap = proc->acc;
@@ -470,7 +496,7 @@ void xch(REGNO regno)
 
 void bbl(UBYTE op)
 {
-	fprintf(stderr, "bbl %#x\n",op&0xf);
+    dbgprintf(logfile, "bbl %#x\n",op&0xf);
     proc->pc = proc->stack[proc->spointer];
     proc->spointer--; //no need to check for underflow
     proc->acc = op & 0xF;
@@ -478,35 +504,35 @@ void bbl(UBYTE op)
 
 void ldm(UBYTE data)
 {
-	fprintf(stderr, "ldm %d\n", data&0xf);
+    dbgprintf(logfile, "ldm %d\n", data&0xf);
     proc->acc = data & 0x0F; 
     proc->pc++;
 }
 
 void wmp()
 {
-	//TODO
-	fprintf(stderr, "wmp\n");
+    //TODO
+    dbgprintf(logfile, "wmp\n");
     proc->pc++;
 }
 
 void rdr()
 {
-	fprintf(stderr, "rdr\n");
-	//TODO:
+    dbgprintf(logfile, "rdr\n");
+    //TODO:
     proc->pc++;
 }
 
 void kbi()
 {
-	fprintf(stderr, "kbi\n");
+    dbgprintf(logfile, "kbi\n");
     proc->acc = getchar();
     proc->pc++;
 }
 
 void asc()
 {
-	fprintf(stderr, "%#x asc\n",proc->pc);
+    dbgprintf(logfile, "%#x asc\n",proc->pc);
     printf("%c",proc->acc);
     proc->pc++;
 }
@@ -515,22 +541,22 @@ void clb()
 {
     proc->acc = 0;
     proc->carry = 0;
-	fprintf(stderr, "clb\n");
+    dbgprintf(logfile, "%#x clb\n", proc->pc);
     proc->pc++;
 }
 
 void clc() //TODO: mit asc getauscht, weil da ganz offensichtlich n fehler ist...
 {
-/*    proc->carry = 0;
+    proc->carry = 0;
+    dbgprintf(logfile, "%#x clc\n",proc->pc);
     proc->pc++;
-    fprintf(stderr, "clc\n");*/
-    asc();
+    
 }
 
 void iac()
 {
-	fprintf(stderr, "iac\n");
-	UBYTE tmp = proc->acc;
+    dbgprintf(logfile, "iac\n");
+    UBYTE tmp = proc->acc;
     if(tmp < ++proc->acc)
         proc->carry = true;
     proc->pc++;
@@ -538,49 +564,49 @@ void iac()
 
 void cmc()
 {
-	fprintf(stderr, "cmc\n");
+    dbgprintf(logfile, "cmc\n");
     proc->carry = (proc->carry==false)?true:false;
     proc->pc++;
 }
 
 void cma()
 {
-	fprintf(stderr, "cma\n");
+    dbgprintf(logfile, "cma\n");
     proc->acc = ~proc->acc;
     proc->pc++;
 }
 
 void ral()
 {
-	fprintf(stderr, "ral\n");
-	UBYTE lsb = proc->carry;
-	proc->carry = proc->acc & 0x80; // carry = msb
-	proc->acc = (proc->acc << 1) & lsb;
-	
+    dbgprintf(logfile, "ral\n");
+    UBYTE lsb = proc->carry;
+    proc->carry = proc->acc & 0x80; // carry = msb
+    proc->acc = (proc->acc << 1) & lsb;
+
     proc->pc++;
 }
 
 void rar()
 {
-	fprintf(stderr, "rar\n");
-	UBYTE msb = proc->carry;
-	proc->carry = proc->acc & 0x01; // carry = lsb
-	proc->acc = (proc->acc >> 1) & (msb << 7);
-	
+    dbgprintf(logfile, "rar\n");
+    UBYTE msb = proc->carry;
+    proc->carry = proc->acc & 0x01; // carry = lsb
+    proc->acc = (proc->acc >> 1) & (msb << 7);
+
     proc->pc++;
 }
 
 void tcc()
 {
-	fprintf(stderr, "tcc\n");
+    dbgprintf(logfile, "tcc\n");
     proc->acc = proc->carry;
     proc->pc++;
 }
 
 void dac()
 {
-	UBYTE tmp = proc->acc;
-	fprintf(stderr, "dac\n");
+    UBYTE tmp = proc->acc;
+    dbgprintf(logfile, "dac\n");
     if(tmp > --proc->acc)
         proc->carry = true;
     proc->pc++;
@@ -589,19 +615,19 @@ void dac()
 void stc()
 {
     proc->carry = true;
-    fprintf(stderr, "stc\n");
+    dbgprintf(logfile, "stc\n");
     proc->pc++;
 }
 
 void daa() //TODO BCD adjust
 {
-	fprintf(stderr, "daa\n");
+    dbgprintf(logfile, "daa\n");
     proc->pc++;
 }
 
 void hlt()
 {
     proc->run = 0;
-    fprintf(stderr, "hlt\n");
+    dbgprintf(logfile, "hlt\n");
 }
 
