@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "loader.h"
+#include "program.h"
 #include "auxiliary.h"
 
-PRCX8 bootstrap(const char * name){
+struct RCX8* bootstrap(const char * name){
 	FILE * pIn = fopen(name, "rb");
 	if(pIn != NULL){
 		printf("Loader started\n");
-		WORD buf;
-		PRCX8 retVal = (PRCX8) malloc(sizeof(RCX8));
+		int16_t buf;
+		struct RCX8* retVal = (struct RCX8*) malloc(sizeof(struct RCX8));
 		setup(retVal);
 		int mode = 0;
 		while(!feof(pIn) && mode==0){
@@ -34,11 +36,11 @@ PRCX8 bootstrap(const char * name){
 					break;
 				case 0x2000:
 					fread(&buf,sizeof(buf),1,pIn); //Loading offset
-					ADDR offset = buf;
+					uint16_t offset = buf;
 					fread(&buf,sizeof(buf),1,pIn); //Length of data
-					WORD length = buf;
+					int16_t length = buf;
 					printf("Found data block %x at %x len: %d\n",offset,ftell(pIn),length);
-					fread(retVal->memory + offset, sizeof(BYTE),length, pIn);
+					fread(retVal->memory + offset, sizeof(int8_t),length, pIn);
 					break;
 				case 0x7000:
 					fread(&buf,sizeof(buf),1,pIn);
@@ -54,11 +56,11 @@ PRCX8 bootstrap(const char * name){
 }
 
 
-void setup(PRCX8 state){
+void setup(struct RCX8* state){
 	if(state != NULL){
-        memset(state->reg,0,_REGISTERCOUNT_*sizeof(UBYTE));
-        memset(state->memory,0,_MEMSIZE_ * sizeof(UBYTE));
-        memset(state->stack,0,_CALLSTACKSIZE_*sizeof(ADDR));
+        memset(state->reg,0,_REGISTERCOUNT_*sizeof(uint8_t));
+        memset(state->memory,0,_MEMSIZE_ * sizeof(uint8_t));
+        memset(state->stack,0,_CALLSTACKSIZE_*sizeof(uint16_t));
         state->spointer = 0;
         state->acc = 0;
         state->pc = 0;
@@ -67,12 +69,12 @@ void setup(PRCX8 state){
 	}
 }
 
-void dumpstate(PRCX8 state){
+void dumpstate(struct RCX8* state){
 	FILE * fout;
 	fout = fopen("dump.out","wb");
 	if(fout != NULL){
 		printf("PC:%d\nACC:%d\n",state->pc,state->acc);
-		fwrite(state->memory,sizeof(UBYTE),_MEMSIZE_, fout);
+		fwrite(state->memory,sizeof(uint8_t),_MEMSIZE_, fout);
 		fclose(fout);
 	}
 	

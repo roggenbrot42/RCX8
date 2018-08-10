@@ -1,12 +1,9 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-#include "types.h"
-
-
-PRCX8 bootstrap(const char * name);
-void setup(PRCX8);
-void dumpstate(PRCX8);
+struct RCX8* bootstrap(const char * name);
+void setup(struct RCX8*);
+void dumpstate(struct RCX8*);
 
 #endif
 

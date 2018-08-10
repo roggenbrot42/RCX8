@@ -28,12 +28,10 @@ rcx8: main.o loader.o
 ####### Compile
 
 main.o: src/main.c src/program.h \
-		src/types.h \
 		src/loader.h
 	$(CC) -c $(CFLAGS) $(INCPATH) -o main.o src/main.c
 
 loader.o: src/loader.c src/loader.h \
-		src/types.h \
 		src/auxiliary.h
 	$(CC) -c $(CFLAGS) $(INCPATH) -o loader.o src/loader.c
 	
