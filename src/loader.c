@@ -58,14 +58,7 @@ struct RCX8* bootstrap(const char * name){
 
 void setup(struct RCX8* state){
 	if(state != NULL){
-        memset(state->reg,0,_REGISTERCOUNT_*sizeof(uint8_t));
-        memset(state->memory,0,_MEMSIZE_ * sizeof(uint8_t));
-        memset(state->stack,0,_CALLSTACKSIZE_*sizeof(uint16_t));
-        state->spointer = 0;
-        state->acc = 0;
-        state->pc = 0;
-        state->carry = 0;
-        state->run = 1;
+        reset(state);
 	}
 }
 
