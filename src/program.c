@@ -541,9 +541,9 @@ void add(struct RCX8* proc,uint8_t regno)
 {
     uint16_t sum;
 
-    //A = A + R + C if overflow, set C
+    //R = A + R + C if overflow, set C
     sum = proc->acc + proc->reg[regno] + proc->carry;
-    proc->acc = sum & 0xFF;
+    proc->reg[regno] = sum & 0xFF;
     if(sum > UCHAR_MAX){
         proc->carry = true;
     }else{
@@ -563,9 +563,9 @@ void sub(struct RCX8* proc,uint8_t regno)
 {
     uint16_t dif;
 
-    //A = A + R + C if overflow, set C
+    //R = A - R - C if borrow, set C
     dif = proc->acc - proc->reg[regno] - proc->carry;
-    proc->acc = dif & 0xFF;
+    proc->reg[regno] = dif & 0xFF;
     if(dif > UCHAR_MAX){
         proc->carry = true;
     }else{
@@ -650,7 +650,7 @@ void clc(struct RCX8* proc){
 void iac(struct RCX8* proc)
 {
     uint8_t tmp = proc->acc;
-    if(tmp < ++proc->acc)
+    if(tmp > ++proc->acc)
         proc->carry = true;
     else
         proc->carry = false;
@@ -713,9 +713,18 @@ void stc(struct RCX8* proc)
     proc->pc++;
 }
 
-void daa(struct RCX8* proc) //TODO BCD adjust
+void daa(struct RCX8* proc)
 {
-    printf("daa =========\n");
+    //packed BCD adjust after addition, two digits in A
+    uint8_t old = proc->acc;
+    bool carry = proc->carry;
+
+    if((old & 0x0F) > 9)
+        proc->acc += 0x06;
+    if(old > 0x99 || carry){
+        proc->acc += 0x60;
+        proc->carry = true;
+    }
     proc->pc++;
 }
 
