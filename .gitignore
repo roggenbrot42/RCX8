@@ -1,2 +1,5 @@
 *.o
 rcx8
+build/
+CMakeLists.txt.user*
+dump.out*
