@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <inttypes.h>
 #include "program.h"
 #include "loader.h"
@@ -80,7 +81,7 @@ void reset(struct RCX8* proc){
     memset(proc->stack,0,sizeof(uint8_t)*_CALLSTACKSIZE_);
     memset(proc->port,0,sizeof(uint8_t)*_PORTNUM_);
 
-    proc->spointer = 0;
+    proc->spointer = UCHAR_MAX;
     proc->acc = 0;
     proc->pc = 0;
     proc->carry = 0;
@@ -109,12 +110,12 @@ struct OP read_op(struct RCX8* proc)
 
 
 
-    if      (hi == 0) op.opid = _nop;
+    if (hi == 0) op.opid = _nop;
     else if(hi ==  1) {
         op.opid = _jcn;
         op.arg[0] = lo;
         op.arg_t[0] = arg_cnd;
-        op.arg[1] = proc->memory[proc->pc+1];
+        op.arg[1] = fetch_addr(proc,proc->pc+1);
         op.arg_t[1] = arg_addr;
     }
     else if(hi ==  2 && loo==0){
@@ -411,7 +412,7 @@ inline uint16_t fetch_addr(struct RCX8* proc,uint16_t in)
 {
 
     uint16_t addr=0;
-    addr = (proc->memory[in+1] << 8) | proc->memory[in];
+    addr = (uint16_t)(proc->memory[in+1] << 8) | proc->memory[in];
 
     return addr;
 }
@@ -423,34 +424,19 @@ void nop(struct RCX8* proc)
 
 void jcn(struct RCX8* proc,uint8_t cond,uint16_t addr)
 {
-    bool proceed;
-    proceed = false;
-    bool invert = true;
+    //conditions are OR-ed, the invert bit negates the result
+    bool proceed = false;
+    bool invert = (cond & 0x8) != 0;
 
-    if(cond&0b1000){ //invert bit set?
-        invert = false;
-    }
-    if(cond&0b100) //check for acc = 0
-    {
-        if((proc->acc == 0) == invert)
-            proceed = true;
-    }
-    if(cond&0b10)
-    {
-        if((proc->carry == 1) == invert)
-            proceed = true;
-        else
-            proceed = false;
-    }
-    if(cond&0b1)
-    {
-        if((proc->test == 1) == invert){
-            proceed = true;
-        }
-        else{
-            proceed = false;
-        }
-    }
+    if((cond & 0x4) && proc->acc == 0)
+        proceed = true;
+    if((cond & 0x2) && proc->carry == 1)
+        proceed = true;
+    if((cond & 0x1) && proc->test == 1)
+        proceed = true;
+
+    if(invert)
+        proceed = !proceed;
 
     if(proceed)
     {
@@ -495,8 +481,9 @@ void jun(struct RCX8* proc,uint16_t addr)
 void jms(struct RCX8* proc,uint16_t addr)
 {
     proc->spointer++;
-    if(proc->spointer>15)
+    if(proc->spointer >= _CALLSTACKSIZE_){
         proc->spointer = 0;
+    }
     proc->stack[proc->spointer] = proc->pc+3; //pc+3 ?
     proc->pc = addr;
 }
@@ -552,21 +539,17 @@ void sto(struct RCX8* proc,uint8_t regno,uint16_t addr)
 
 void add(struct RCX8* proc,uint8_t regno)
 {
-    uint8_t tmp,tmp2;
-#if __GNUC__ > 4
-    //R = A + R + C
-    if(__builtin_add_overflow(proc->acc, proc->reg[regno],&tmp)){
+    uint16_t sum;
+
+    //A = A + R + C if overflow, set C
+    sum = proc->acc + proc->reg[regno] + proc->carry;
+    proc->acc = sum & 0xFF;
+    if(sum > UCHAR_MAX){
         proc->carry = true;
     }else{
         proc->carry = false;
     }
-    if(__builtin_add_overflow(tmp, proc->carry, &tmp2))
-        proc->carry |= true;
 
-    proc->reg[regno] = tmp2;
-#else
-    add_of(proc->carry, proc->acc, proc->reg[regno]);
-#endif
     proc->pc++;
 }
 
@@ -578,26 +561,23 @@ void x0r(struct RCX8* proc,uint8_t regno)
 
 void sub(struct RCX8* proc,uint8_t regno)
 {
-    uint8_t tmp,tmp2;
-#if __GNUC__ > 4
-    //R = A - R - C
-    if(__builtin_sub_overflow(proc->acc, proc->reg[regno],&tmp)){
+    uint16_t dif;
+
+    //A = A + R + C if overflow, set C
+    dif = proc->acc - proc->reg[regno] - proc->carry;
+    proc->acc = dif & 0xFF;
+    if(dif > UCHAR_MAX){
         proc->carry = true;
     }else{
         proc->carry = false;
     }
-    if(__builtin_sub_overflow(tmp, proc->carry, &tmp2))
-        proc->carry |= true;
-
-    proc->reg[regno] = tmp2;    
-#endif
     proc->pc++;
 }
 
 void sti(struct RCX8* proc,uint8_t regno)
 {
     uint16_t addr;
-    addr = (proc->reg[1] <<8) | proc->reg[0];
+    addr = (uint16_t) (proc->reg[1] <<8) | proc->reg[0];
     proc->memory[addr] = proc->reg[regno];
 
     proc->pc++;
@@ -645,13 +625,13 @@ void rdr(struct RCX8* proc,uint8_t port)
 
 void kbi(struct RCX8* proc)
 {
-    proc->acc = kbi_abstract();
+    proc->acc = (uint8_t) kbi_abstract();
     proc->pc++;
 }
 
 void asc(struct RCX8* proc)
 {
-    asc_abstract(proc->acc);
+    asc_abstract((char) proc->acc);
     proc->pc++;
 }
 
@@ -679,7 +659,7 @@ void iac(struct RCX8* proc)
 
 void cmc(struct RCX8* proc)
 {
-    proc->carry = (proc->carry==0)?1:0;
+    proc->carry = (proc->carry==false)?true:false;
     proc->pc++;
 }
 
@@ -692,10 +672,10 @@ void cma(struct RCX8* proc)
 void ral(struct RCX8* proc)
 {
     uint8_t lsb = proc->carry;
-    proc->carry = proc->acc & (0x80 >> 7); // carry = msb
-    proc->acc = (proc->acc << 1) | lsb;
+    proc->carry = (proc->acc & 0x80) >> 7; // carry = msb
+    proc->acc = (proc->acc << 1) + lsb;
 
-    printf("ral: %x %x\n", proc->carry, proc->acc);
+//    printf("ral: %x %x\n", proc->carry, proc->acc);
 
     proc->pc++;
 }
@@ -712,7 +692,7 @@ void rar(struct RCX8* proc)
 void tcc(struct RCX8* proc)
 {
     proc->acc = proc->carry;
-    proc->carry = 0;
+    proc->carry = false;
     proc->pc++;
 }
 

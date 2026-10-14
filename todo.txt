@@ -1,11 +1,1 @@
-RAM:
-    unsigned char memory[65536];
-    unsigned char callStack[256];
-    unsigned char register[8];
-    memset(callStack,0,256);
-    memset(memory,0,65536);
-    memset(register,0,8);
-    unsigned short pc, addressPointer;
-
-
 ENDIAN CHECK!!!

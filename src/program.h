@@ -1,5 +1,5 @@
 #ifndef RCX8_H
-#define RCX8_h
+#define RCX8_H
 
 #include<inttypes.h>
 
@@ -22,7 +22,7 @@ struct RCX8{
     char * buf_opstr;
 };
 
-enum {
+enum arg_types{
     arg_none,
     arg_reg,
     arg_dirct,
@@ -31,7 +31,7 @@ enum {
     arg_ptr,
     arg_port,
     num_argst
-} arg_types;
+};
 
 
 struct OP{
@@ -43,7 +43,7 @@ struct OP{
 };
 
 
-enum {
+enum opcode_mnemonic{
     _nop,
     _jcn,
     _fin,
@@ -81,7 +81,7 @@ enum {
     _daa,
     _hlt,
     _num_ops
-}opcode_mnemonic;
+};
 
 extern const char * const op_name[];
 
