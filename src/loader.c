@@ -6,10 +6,12 @@
 #include "program.h"
 #include "auxiliary.h"
 
+extern int verbose;
+
 struct RCX8* bootstrap(const char * name){
 	FILE * pIn = fopen(name, "rb");
 	if(pIn != NULL){
-		printf("Loader started\n");
+		if(verbose) printf("Loader started\n");
 		int16_t buf;
 		struct RCX8* retVal = (struct RCX8*) malloc(sizeof(struct RCX8));
 		setup(retVal);
@@ -20,13 +22,13 @@ struct RCX8* bootstrap(const char * name){
 			//printf("0x%x\n",buf);
 			switch(buf){
 				case 0x0000:
-					printf("EOF\n");
+					if(verbose) printf("EOF\n");
 					mode=1;
 					break;
 				case 0x1000:
                     fread(&buf,sizeof(buf),1,pIn);
                     char c;
-                    printf("Found comment block at %x of length: %d\n", ftell(pIn),buf);
+                    if(verbose) printf("Found comment block at %x of length: %d\n", ftell(pIn),buf);
 					for(int i = 0; i < buf; i++){
 						fread(&c, sizeof(c),1,pIn);
 						printf("%c", c);
@@ -39,12 +41,12 @@ struct RCX8* bootstrap(const char * name){
 					uint16_t offset = buf;
 					fread(&buf,sizeof(buf),1,pIn); //Length of data
 					int16_t length = buf;
-					printf("Found data block %x at %x len: %d\n",offset,ftell(pIn),length);
+					if(verbose) printf("Found data block %x at %x len: %d\n",offset,ftell(pIn),length);
 					fread(retVal->memory + offset, sizeof(int8_t),length, pIn);
 					break;
 				case 0x7000:
 					fread(&buf,sizeof(buf),1,pIn);
-					printf("Found PC Address: %x at %x\n", buf, ftell(pIn));
+					if(verbose) printf("Found PC Address: %x at %x\n", buf, ftell(pIn));
 					retVal->pc = buf;
 					break;
 				}

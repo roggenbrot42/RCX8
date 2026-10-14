@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(RCX8)
 set(libsrc src/program.c src/loader.c)
 add_library(objlib OBJECT ${libsrc})

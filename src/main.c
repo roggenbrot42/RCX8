@@ -77,14 +77,14 @@ int main(int argc, char * argv[])
         proc1(proc);
     }
 
-    printf("und go.\n");
+    if(verbose) printf("und go.\n");
     proc->run = 1;
     int c;
 
    do{
         struct OP op;
         op = read_op(proc);
-        printf("%x %s\n",proc->pc,op2str(op));
+        if(verbose) printf("%x %s\n",proc->pc,op2str(op));
         if(step){
             switch(op.opid){
             case _jun:
@@ -102,6 +102,7 @@ int main(int argc, char * argv[])
         }
     }while(proc && proc->run && proc->pc != 0x1200);
 
+    putchar('\n');
     print_state(proc);
 
     while(step && (c = getchar()) != EOF){
