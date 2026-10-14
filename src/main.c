@@ -100,7 +100,7 @@ int main(int argc, char * argv[])
             print_state(proc);
             getchar();
         }
-    }while(proc && proc->run && proc->pc != 0x1200);
+    }while(proc && proc->run);
 
     putchar('\n');
     print_state(proc);
